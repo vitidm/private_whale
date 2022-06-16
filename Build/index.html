@@ -1,74 +1,104 @@
-<!--
-unity webgl responsive
-
-template by dom
-dom@crowscrowscrows.com
-https://twitter.com/zerstoerer
-
-source code on github
-https://github.com/sno/unity-webgl-responsive
--->
-
 <!DOCTYPE html>
 <html lang="en-us">
 
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>%UNITY_WEB_NAME%</title>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>ISAAC BFF</title>
+	<style>
+		html,
+		body {
+			background: #0000;
+			width: 100%;
+			height: 100%;
+			overflow: visible;
+			padding: 0;
+			margin: 0;
+		}
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+		div#gameContainer {
+			background: transparent !important;
+			position: absolute;
+		}
 
-    <link rel="stylesheet" href="assets/css/reset.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+		div#gameContainer canvas {
+			position: absolute;
+		}
 
-    <!-- unity resources -->
-    <script src="%UNITY_WEBGL_LOADER_URL%"></script>
+		div#gameContainer canvas[data-pixel-art="true"] {
+			position: absolute;
+			image-rendering: optimizeSpeed;
+			image-rendering: -webkit-crisp-edges;
+			image-rendering: -moz-crisp-edges;
+			image-rendering: -o-crisp-edges;
+			image-rendering: crisp-edges;
+			image-rendering: -webkit-optimize-contrast;
+			image-rendering: optimize-contrast;
+			image-rendering: pixelated;
+			-ms-interpolation-mode: nearest-neighbor;
+		}
+	</style>
+</head>
 
-    <script>
-      // instantiate webgl only if we're not on a touch device
+<body>
+	<div id="gameContainer">
+		<canvas id="unity-canvas" data-pixel-art=""></canvas>
+		<script src="Build/Build.loader.js"></script>
+		<script>
+			var canvas = document.querySelector("#unity-canvas");
+			var config = {
+				dataUrl: "Build/Build.data",
+				frameworkUrl: "Build/Build.framework.js",
+				codeUrl: "Build/Build.wasm",
+				streamingAssetsUrl: "StreamingAssets",
+				companyName: "DefaultCompany",
+				productName: "ISAAC BFF",
+				productVersion: "0.1",
+			};
+			var scaleToFit;
+			try {
+				scaleToFit = !!JSON.parse("true");
+			} catch (e) {
+				scaleToFit = true;
+			}
+			function progressHandler(progress) {
+				var percent = progress * 100 + '%';
+				canvas.style.background = 'linear-gradient(to right, white, white ' + percent + ', transparent ' + percent + ', transparent) no-repeat center';
+				canvas.style.backgroundSize = '100% 1rem';
+			}
+			function onResize() {
+				var container = canvas.parentElement;
+				var w;
+				var h;
 
-      var isTouch = ('ontouchstart' in document.documentElement);
+				if (scaleToFit) {
+					w = window.innerWidth;
+					h = window.innerHeight;
 
-      if ( !isTouch ) {
-        var unityInstance = UnityLoader.instantiate("unityContainer", "%UNITY_WEBGL_BUILD_URL%");
-      }
-    </script>
-  </head>
+					var r = 720 / 1280;
 
-  <body>
-    <div class="webgl-wrapper">
-      <div class="aspect" style="margin-top: calc(100% / %UNITY_WIDTH% * %UNITY_HEIGHT%);"></div>
-      <div class="webgl-content">
-        <div id="unityContainer"></div>
-      </div>
-    </div>
+					if (w * r > window.innerHeight) {
+						w = Math.min(w, Math.ceil(h / r));
+					}
+					h = Math.floor(w * r);
+				} else {
+					w = 1280;
+					h = 720;
+				}
 
-    <div class="info">
-      <p>unity webgl responsive</p>
-      <p>press F or <a href="#" onclick="unityInstance.SetFullscreen(1)">click here</a> to toggle fullscreen</p>
-    </div>
+				container.style.width = canvas.style.width = w + "px";
+				container.style.height = canvas.style.height = h + "px";
+				container.style.top = Math.floor((window.innerHeight - h) / 2) + "px";
+				container.style.left = Math.floor((window.innerWidth - w) / 2) + "px";
+			}
+			createUnityInstance(canvas, config, progressHandler).then(function (instance) {
+				canvas = instance.Module.canvas;
+				onResize();
+			});
+			window.addEventListener('resize', onResize);
+			onResize();
+		</script>
+	</div>
+</body>
 
-    <!-- feel free to remove all credits! -->
-    <div class="info">
-      <p>source code on <a href="https://github.com/sno/unity-webgl-responsive">github</a></p>
-      <p>template by dom / <a href="https://twitter.com/zerstoerer">@zerstoerer</a></p>
-    </div>
-
-    <!-- check for F key press to toggle full screen -->
-    <script>
-      var isFullscreen = false;
-
-      document.addEventListener('keydown', function(event) {
-          if (event.which === 70) {
-              if (!isFullscreen) {
-                unityInstance.SetFullscreen(1);
-              } else {
-                unityInstance.SetFullscreen(0);
-              }
-              isFullscreen = !isFullscreen;
-          }
-      });
-    </script>
-  </body>
 </html>
